@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Little Surprise for Princess</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- Library Kembang Api -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth;}
+    body { background-color: #0a0a0a; color: #fff; font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+
+    /* --- LOCK SCREEN (PIN) --- */
+    #lock-screen {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at center, #1a0b2e 0%, #050505 100%);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 9999; transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    .lock-box {
+        text-align: center; background: rgba(255,255,255,0.02); padding: 40px; border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10;
+    }
+    .lock-box h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; color: #ff4d6d; text-shadow: 0 0 10px rgba(255, 77, 109, 0.5); }
+    .lock-box p { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .pin-input {
+        background: transparent; border: none; border-bottom: 2px solid #ff4d6d;
+        color: #fff; font-size: 28px; text-align: center; letter-spacing: 10px;
+        width: 200px; outline: none; padding-bottom: 5px; font-family: 'Poppins', sans-serif; transition: 0.3s;
+    }
+    .pin-input:focus { box-shadow: 0 10px 10px -10px rgba(255, 77, 109, 0.5); }
+    .error-msg { color: #ff4d6d; font-size: 12px; margin-top: 15px; display: none; }
+
+    /* --- MAIN CONTENT --- */
+    #main-content { opacity: 0; pointer-events: none; transition: opacity 1.5s ease-in-out; position: relative; z-index: 2; }
+
+    /* --- FLOATING HEARTS --- */
+    .hearts-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+    .heart { position: absolute; bottom: -20px; color: #ff4d6d; font-size: 20px; animation: floatUp 10s linear infinite; opacity: 0; text-shadow: 0 0 10px #ff4d6d; }
+    @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
+
+    /* --- HERO SECTION --- */
+    .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 24px; color: #a995c7; font-weight: 400; margin-bottom: 10px; letter-spacing: 2px; }
+    .hero h2 { font-family: 'Playfair Display', serif; font-size: 64px; color: #fff; margin-bottom: 30px; text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); min-height: 80px;}
+    .hero p { color: #aaa; font-size: 14px; margin-bottom: 40px; max-width: 400px; line-height: 1.6; }
+    
+    .cursor { display: inline-block; width: 3px; background-color: #ff4d6d; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* --- SLIDER SECTION --- */
+    .slider-container { 
+        position: relative; max-width: 800px; margin: 0 auto; 
+        overflow: hidden; border-radius: 20px; 
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(255, 77, 109, 0.2); 
+        background-color: #050505;
+        border: 1px solid #ff4d6d;
+    }
+    .slider { display: flex; transition: transform 0.5s ease-in-out; }
+    .slide { min-width: 100%; height: 500px; display: flex; justify-content: center; align-items: center; }
+    .slide img { width: 100%; height: 100%; object-fit: contain; padding: 15px; }
+
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 77, 109, 0.6); color: white; border: none; padding: 15px; cursor: pointer; font-size: 20px; border-radius: 50%; backdrop-filter: blur(5px); transition: 0.3s; }
+    .slider-btn:hover { background: #ff4d6d; }
+    .prev { left: 20px; }
+    .next { right: 20px; }
+    .dots { text-align: center; padding: 15px 0; }
+    .dot { display: inline-block; width: 12px; height: 12px; background: #333; border-radius: 50%; margin: 0 5px; cursor: pointer; transition: 0.3s; }
+    .dot.active { background: #ff4d6d; box-shadow: 0 0 10px #ff4d6d; }
+
+    /* --- WISH SECTION (DOA) --- */
+    .wish-section { text-align: center; padding: 100px 20px; background: linear-gradient(to bottom, rgba(5,5,5,0), rgba(26, 11, 46, 0.9)); }
+    .wish-section h2 { font-family: 'Playfair Display', serif; font-size: 48px; color: #fff; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+    .wish-section h3 { font-size: 24px; color: #ff4d6d; margin-bottom: 30px; text-shadow: 0 0 15px rgba(255, 77, 109, 0.6); }
+    .wish-box { max-width: 700px; margin: 0 auto; text-align: left; background: rgba(255,255,255,0.02); padding: 40px; border-radius: 15px; border: 1px solid rgba(255, 77, 109, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .wish-box p { color: #d1c4e9; line-height: 1.9; font-size: 15px; margin-bottom: 20px; }
+    .wish-box .highlight { color: #ff4d6d; font-weight: 600; font-style: italic; }
+
+    /* --- LOVE LETTER --- */
+    .letter-section { padding: 80px 20px; display: flex; justify-content: center; }
+    .envelope { background: #13131a; width: 300px; height: 200px; border-radius: 10px; border: 2px solid #ff4d6d; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+    .envelope:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 77, 109, 0.5); }
+    .envelope-icon { font-size: 60px; color: #ff4d6d; }
+    .letter-content { display: none; max-width: 600px; background: #1a1a24; padding: 40px; border-radius: 15px; border: 1px solid #ff4d6d; margin-top: 20px; animation: fadeIn 1s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .letter-content p { color: #ccc; line-height: 1.8; margin-bottom: 15px; font-family: 'Playfair Display', serif; font-style: italic; font-size: 16px; }
+
+    /* --- TOMBOL KEJUTAN --- */
+    .surprise-btn-container { text-align: center; padding: 50px 0; }
+    .btn-surprise { padding: 15px 40px; background: transparent; border: 2px solid #ff4d6d; color: #ff4d6d; border-radius: 50px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; }
+    .btn-surprise:hover { background: #ff4d6d; color: white; box-shadow: 0 0 30px rgba(255, 77, 109, 0.8); }
+
+    /* Confetti */
+    .confetti { position: fixed; width: 10px; height: 10px; z-index: 10000; animation: confettiFall 3s linear forwards; }
+    @keyframes confettiFall { 0% { transform: translateY(-100px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+    <div class="lock-box">
+        <h2>A Little Surprise</h2>
+        <p>Masukkan PIN rahasia untuk membuka</p>
+        <input type="password" id="pin-input" class="pin-input" maxlength="8" placeholder="********" inputmode="numeric">
+        <br>
+        <button class="btn" onclick="checkPin()" style="margin-top: 30px; padding: 15px 35px; background: #ff4d6d; color: white; border-radius: 50px; border: none; font-weight: 600; cursor: pointer;">Buka Kunci</button>
+        <div class="error-msg" id="error-msg">PIN Salah!</div>
+    </div>
+</div>
+
+<!-- FLOATING HEARTS -->
+<div class="hearts-bg" id="hearts-bg"></div>
+
+<!-- MAIN CONTENT -->
+<div id="main-content">
+    
+    <section class="hero">
+        <h1>Made Just for You</h1>
+        <h2 id="typing-text"><span class="cursor">&nbsp;</span></h2>
+        <p>Sebuah hadiah kecil, untuk seseorang yang luar biasa.</p>
+        <a href="#slider-section" class="btn" style="display:inline-block; padding: 15px 35px; background: #ff4d6d; color: white; text-decoration: none; border-radius: 50px; font-weight: 600;">LIHAT ALBUM</a>
+    </section>
+
+    <h2 style="text-align: center; font-family: 'Playfair Display'; font-size: 32px; margin: 80px 0 20px; color: #ff4d6d;">Her Beauty</h2>
+    <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 50px;">Potret kecil yang selalu bikin aku kagum</p>
+    
+    <div class="slider-container" id="slider-section">
+        <div class="slider" id="slider">
+            <div class="slide"><img src="foto1.jpg" alt="Princess 1"></div>
+            <div class="slide"><img src="foto2.jpg" alt="Princess 2"></div>
+            <div class="slide"><img src="foto3.jpg" alt="Princess 3"></div>
+            <div class="slide"><img src="foto4.jpg" alt="Princess 4"></div>
+            <div class="slide"><img src="foto5.jpg" alt="Princess 5"></div>
+            <div class="slide"><img src="foto6.jpg" alt="Princess 6"></div>
+        </div>
+        <button class="slider-btn prev" onclick="moveSlide(-1)">❮</button>
+        <button class="slider-btn next" onclick="moveSlide(1)">❯</button>
+    </div>
+    <div class="dots" id="dots"></div>
+
+    <section class="wish-section" id="wish">
+        <h2>Happy Birthday</h2>
+        <h3>Princess Yayaa ❤️</h3>
+        
+        <div class="wish-box">
+            <p>Selamat bertambah usia, Princess. Hari ini adalah harimu. Hari di mana dunia pernah diberi hadiah yang begitu berharga, dan aku bersyukur bisa mengenal salah satu versi terbaik dari dunia itu: <span class="highlight">kamu</span>.</p>
+            <p>Terima kasih sudah bertahan sejauh ini. Terima kasih sudah menjadi kuat di saat-saat yang mungkin tidak ada yang tahu. Terima kasih sudah menjadi dirimu sendiri, dengan segala kekurangan dan kelebihan yang justru membuatmu sempurna di mataku.</p>
+            <p>Aku mungkin tidak bisa memberikan hadiah mahal atau merayakannya bersamamu malam ini. Tapi lewat halaman kecil ini, aku ingin menitipkan doa yang paling tulus:</p>
+            <p class="highlight">"Semoga di tahun ini dan seterusnya, langkahmu selalu dimudahkan. Semoga rezekimu dilancarkan, hatimu selalu dijaga dari rasa sedih yang berlarut-larut, dan semua mimpi yang kamu rajut pelan-pelan bisa terwujud satu per satu. Semoga kamu selalu sehat, panjang umur, dan selalu dikelilingi oleh orang-orang yang tulus menyayangimu."</p>
+            <p>Selamat ulang tahun sekali lagi, Princess. <span class="highlight">Keep shining, keep being you.</span> Aku selalu ada, di sini, buat dukung kamu. 💖🎁🎉</p>
+        </div>
+    </section>
+
+    <div class="letter-section">
+        <div>
+            <div class="envelope" id="envelope" onclick="openLetter()">
+                <div class="envelope-icon">💌</div>
+            </div>
+            <div class="letter-content" id="letter-content">
+                <p>Hai Princess,</p>
+                <p>Ini surat kecil dariku. Mungkin lewat tulisan ini, aku bisa ngomong lebih banyak hal yang gak sempet aku ucapin langsung.</p>
+                <p>Kamu tuh hebat, tau gak? Kamu udah ngelewatin banyak hal, dan kamu masih bisa tersenyum, masih bisa jadi kamu yang manis dan kuat ini.</p>
+                <p>Makasih ya udah jadi kamu. Makasih udah hadir di dunia ini. Aku berharap semua kebaikan yang kamu tanam, kembali ke kamu berkali-kali lipat.</p>
+                <p>Selamat ulang tahun, Princess. Semoga kamu selalu bahagia. ❤️</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="surprise-btn-container">
+        <button class="btn-surprise" onclick="tembakKembangApi()">🎆 Ledakan Kembang Api 🎆</button>
+    </div>
+
+</div>
+
+<!-- SPOTIFY PLAYER (Disembunyiin) -->
+<div id="spotify-player" style="display: none; position: fixed; bottom: 20px; left: 20px; z-index: 999;">
+    <iframe style="border-radius:12px; box-shadow: 0 0 20px rgba(255, 77, 109, 0.5);" src="https://open.spotify.com/embed/track/0XYALktGbnHJ1TdW0Oz5KN?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+</div>
+
+<script>
+    // === LOGIKA PIN ===
+    function checkPin() {
+        const pin = document.getElementById('pin-input').value;
+        const lockScreen = document.getElementById('lock-screen');
+        const mainContent = document.getElementById('main-content');
+        const errorMsg = document.getElementById('error-msg');
+        const spotifyPlayer = document.getElementById('spotify-player');
+        
+        if (pin === "11112008") { 
+            lockScreen.style.transform = "translateY(-100%)";
+            setTimeout(() => {
+                mainContent.style.opacity = "1";
+                mainContent.style.pointerEvents = "auto";
+                lockScreen.style.display = "none"; 
+                
+                // MUNCULIN SPOTIFY PLAYER
+                spotifyPlayer.style.display = "block";
+                
+                startTyping();
+                tembakKonfeti();
+            }, 800);
+        } else {
+            errorMsg.style.display = "block";
+            document.getElementById('pin-input').value = "";
+        }
+    }
+    document.getElementById('pin-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPin(); });
+
+    // === EFEK HATI ===
+    function createHearts() {
+        const container = document.getElementById('hearts-bg');
+        const heartSymbols = ['❤', '🤍', '💖', '✨'];
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
+            heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            heart.innerText = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            container.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 10000);
+        }, 300);
+    }
+    createHearts();
+
+    // === EFEK NGETIK (TYPING) ===
+    const textToType = "Princess Yayaa";
+    let index = 0;
+    function startTyping() {
+        const el = document.getElementById('typing-text');
+        if (index < textToType.length) {
+            el.innerHTML = textToType.substring(0, index + 1) + '<span class="cursor">&nbsp;</span>';
+            index++;
+            setTimeout(startTyping, 150);
+        }
+    }
+
+    // === SLIDER LOGIC ===
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    
+    const dotsContainer = document.getElementById('dots');
+    for(let i=0; i<totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+
+    function goToSlide(n) {
+        currentSlide = (n + totalSlides) % totalSlides;
+        document.getElementById('slider').style.transform = `translateX(-${currentSlide * 100}%)`;
+        document.querySelectorAll('.dot').forEach((d, i) => {
+            d.className = 'dot' + (i === currentSlide ? ' active' : '');
+        });
+    }
+    function moveSlide(n) { goToSlide(currentSlide + n); }
+
+    setInterval(() => { moveSlide(1); }, 4000);
+
+    // === LOVE LETTER ===
+    function openLetter() {
+        document.getElementById('envelope').style.display = 'none';
+        document.getElementById('letter-content').style.display = 'block';
+    }
+
+    // === KONFETI ===
+    function tembakKonfeti() {
+        const colors = ['#ff4d6d', '#c8a2ff', '#fff', '#ffd700'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            document.body.appendChild(confetti);
+            setTimeout(() => { confetti.remove(); }, 3000);
+        }
+    }
+
+    // === LEDAKAN KEMBANG API ===
+    function tembakKembangApi() {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        setTimeout(() => {
+            confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } });
+        }, 250);
+        setTimeout(() => {
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.4 } });
+        }, 600);
+    }
+</script>
+
+</body>
+</html>
